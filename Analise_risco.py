@@ -10,7 +10,7 @@ class AnalisadorDeRisco:
         equipamentos = list(self.repo.equipamentos_by_id.values())
         n = len(equipamentos)
         if n == 0:
-            return {}, {}
+            return {}, {} #DOIS VAZIOS PARA EVITAR ERRO DE MATRIZ TAMANHO 0
 
         # 1. Mapeamento de vulnerabilidades únicas para compor as colunas de M
         vulns_unicas = {}
@@ -20,27 +20,28 @@ class AnalisadorDeRisco:
                     vulns_unicas[v.id_vuln] = v.severidade_cvss
 
         m = len(vulns_unicas)
-        id_vuln_to_idx = {id_v: idx for idx, id_v in enumerate(vulns_unicas.keys())}
+        id_vuln_to_idx = {id_v: idx for idx, id_v in enumerate(vulns_unicas.keys())} #PERCORRE AS VUL UNICAS E ATRIBUI UMA INT PARA CADA USANDO ENUMERATE
+        #id_v = nome da vul | idx = int associado
 
         # 2. Construção da Matriz de Incidência M (n x m) e Vetor de Severidade v (m)
         M = np.zeros((n, m))
         v = np.zeros(m)
 
         for id_v, idx in id_vuln_to_idx.items():
-            v[idx] = vulns_unicas[id_v]
+            v[idx] = vulns_unicas[id_v] #ATRIBUI A INT PARA IDX
 
         for i, eq in enumerate(equipamentos):
             for vuln in eq.vulnerabilidades:
                 j = id_vuln_to_idx[vuln.id_vuln]
-                M[i, j] = 1.0
+                M[i, j] = 1.0 #i = EQUIPAMENTO | J = VULNERABILIDADE
 
         # 3. Risco Próprio b = F * M * v (incorporando o polimorfismo do fator de exposição)
-        F = np.diag([eq.fator_exposicao() for eq in equipamentos])
-        b = F @ (M @ v)
+        F = np.diag([eq.fator_exposicao() for eq in equipamentos]) #DIAG CRIA MATRIZ DIAGONAL
+        b = F @ (M @ v) #B É O RESULTADO FINAL DE RISCO BRUTO INDIVIDUAL
 
         # 4. Matriz de Dependência A (n x n)
         A = np.zeros((n, n))
-        id_eq_to_idx = {eq.id_equip: idx for idx, eq in enumerate(equipamentos)}
+        id_eq_to_idx = {eq.id_equip: idx for idx, eq in enumerate(equipamentos)} #ATRIBUI UMA INT A CADA EQUIP
 
         for chave, peso in self.repo.dependencias.items():
             id_origem, id_destino = map(int, chave.split("->"))
