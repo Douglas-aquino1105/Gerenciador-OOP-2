@@ -149,27 +149,36 @@ class CLI:
         for ativo in self.repo.equipamentos_by_nome.values():
             print(f"{AZUL}{ativo.id_equip}{RESET}.{ativo.nome.capitalize()}")
 
-        print("\n--- Buscar Ativo ---")
-        termo = self._ler_texto_nao_vazio("Digite o ID ou nome do ativo: ")
+        while True:
+            print("\n--- Buscar Ativo ---")
+            termo = normalizar_texto(self._ler_texto_nao_vazio("Digite o ID ou nome do ativo: "))
 
-        ativo = None
-        if termo.isdigit():
-            ativo = self.repo.buscar_por_id(int(termo))
-        if not ativo:
-            ativo = self.repo.equipamentos_by_nome.get(termo)
+            ativo = None
+            if termo.isdigit():
+                ativo = self.repo.buscar_por_id(int(termo))
+            if not ativo:
+                ativo = self.repo.equipamentos_by_nome.get(termo)
 
-        if ativo:
-            print(f"\n{VERDE}--- Dados do Ativo ---{RESET}")
-            print(f"{AZUL}ID:{RESET} {ativo.id_equip}")
-            print(f"{AZUL}Hostname:{RESET} {ativo.nome}")
-            print(f"{AZUL}Responsável:{RESET} {ativo.responsavel}")
-            print(f"{AZUL}Setor:{RESET} {ativo.setor}")
-            print(f"{AZUL}Tipo:{RESET} {ativo.tipo.name} (Código: {ativo.tipo.value})")
-            print(f"{AZUL}Número Total de Vulnerabilidades:{RESET} {len(ativo.vulnerabilidades)}")
-            time.sleep(4)
-        else:
+            if ativo:
+                print(f"\n{VERDE}--- Dados do Ativo ---{RESET}")
+                print(f"{AZUL}ID:{RESET} {ativo.id_equip}")
+                print(f"{AZUL}Hostname:{RESET} {ativo.nome}")
+                print(f"{AZUL}Responsável:{RESET} {ativo.responsavel}")
+                print(f"{AZUL}Setor:{RESET} {ativo.setor}")
+                print(f"{AZUL}Tipo:{RESET} {ativo.tipo.name} (Código: {ativo.tipo.value})")
+                print(f"{AZUL}Número Total de Vulnerabilidades:{RESET} {len(ativo.vulnerabilidades)}")
+                time.sleep(4)
+                break  # Encerra a busca e retorna ao menu principal
+
+            # Caso o ativo não seja encontrado:
             print(f"\n{VERMELHO}[Aviso] Nenhum ativo encontrado com esse identificador.{RESET}")
-            time.sleep(2)
+
+            # Pergunta ao usuário se ele deseja tentar novamente
+            opcao = input("\nDeseja tentar novamente? (S/N): ").strip().lower()
+            if opcao not in ["s", "sim", "1"]:
+                print("Retornando ao menu principal...")
+                time.sleep(1)
+                break  # Sai do loop e volta ao menu principal
 
     def _atualizar_ativo(self):
         print("\n--- Atualizar Ativo ---")
