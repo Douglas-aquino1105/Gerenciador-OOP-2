@@ -26,6 +26,11 @@ def normalizar_texto(texto):
     ).lower()
     return sem_acento
 
+def mostrar_ativos(self):
+    print("Ativos disponíveis:\n")
+    for ativo in self.repo.equipamentos_by_nome.values():
+        print(f"{AZUL}{ativo.id_equip}{RESET}.{ativo.nome.capitalize()}")
+
 class CLI:
     def __init__(self):
         # Inicializa o repositório e o analisador de risco
@@ -72,7 +77,7 @@ class CLI:
                 self._calcular_riscos()
             elif opcao in ["0", "sair", "encerrar", "exit", "fechar"]:
                 print(f"\n{VERMELHO}ENCERRANDO A APLICAÇÃO!{RESET}")
-                time.sleep(3)
+                time.sleep(2)
                 sys.exit(0)
 
             else:
@@ -112,19 +117,19 @@ class CLI:
         print(f"\n--- {VERDE}Cadastrar{RESET} Novo Ativo ---")
         print("\nID do ativo sendo gerado automaticamente!")
         id_equip = gerador_id_random(self.repo.equipamentos_by_id.keys())
-        print(f"ID gerado: {VERDE}{id_equip}{RESET}")
+        print(f"{AZUL}ID gerado:{RESET} {VERDE}{id_equip}{RESET}")
 
         # if self.repo.buscar_por_id(id_equip):
         #     print(f"[Erro] Já existe um ativo cadastrado com o ID {id_equip}.")
         #     return
 
-        hostname = self._ler_texto_nao_vazio("Nome: ")
-        responsavel = self._ler_texto_nao_vazio("Responsável: ")
-        setor = self._ler_texto_nao_vazio("Setor/Localização: ")
+        hostname = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Nome:{RESET} "))
+        responsavel = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Responsável:{RESET} "))
+        setor = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Setor/Localização:{RESET} "))
 
         print("\nTipos de Ativos disponíveis:")
         for tipo in TipoEquipamento:
-            print(f"  {tipo.value} - {tipo.name}")
+            print(f"{AZUL}{tipo.value}{RESET} - {tipo.name}")
 
         cod_tipo = self._ler_int("Código do Tipo de Ativo: ")
         try:
@@ -145,9 +150,8 @@ class CLI:
         print(f"\n{VERDE}[Sucesso]{RESET} Ativo '{AZUL}{hostname}{RESET}' cadastrado com {VERDE}sucesso!{VERDE}")
 
     def _buscar_ativo(self):
-        print("Ativos disponíveis:\n")
-        for ativo in self.repo.equipamentos_by_nome.values():
-            print(f"{AZUL}{ativo.id_equip}{RESET}.{ativo.nome.capitalize()}")
+
+        mostrar_ativos(self)
 
         while True:
             print("\n--- Buscar Ativo ---")
@@ -164,7 +168,7 @@ class CLI:
             if ativo:
                 print(f"\n{VERDE}--- Dados do Ativo ---{RESET}")
                 print(f"{AZUL}ID:{RESET} {ativo.id_equip}")
-                print(f"{AZUL}Hostname:{RESET} {ativo.nome}")
+                print(f"{AZUL}Nome:{RESET} {ativo.nome}")
                 print(f"{AZUL}Responsável:{RESET} {ativo.responsavel}")
                 print(f"{AZUL}Setor:{RESET} {ativo.setor}")
                 print(f"{AZUL}Tipo:{RESET} {ativo.tipo.name} (Código: {ativo.tipo.value})")
@@ -205,6 +209,9 @@ class CLI:
         print("\n[Sucesso] Dados do ativo atualizados com sucesso!")
 
     def _remover_ativo(self):
+
+        mostrar_ativos(self)
+
         print("\n--- Remover Ativo ---")
         id_equip = self._ler_int("ID do ativo a remover: ")
 

@@ -11,11 +11,11 @@ def gerador_id_random(ids_existentes) -> int:
             return id_novo
 
 class TipoEquipamento(Enum):
-    NOTEBOOK = 1
-    SERVIDOR = 2
-    ROTEADOR = 3
-    BANCO_DADOS = 4
-    APLICACAO_WEB = 5
+    #NOTEBOOK = 1
+    SERVIDOR = 1
+    #ROTEADOR = 3
+    BANCO_DADOS = 2
+    APLICACAO_WEB = 3
 
 class Vulnerabilidade:
     def __init__(self, id_vuln: str, descricao: str, categoria: str, severidade_cvss: float, status: str = "Aberta", nome: str = ""):
