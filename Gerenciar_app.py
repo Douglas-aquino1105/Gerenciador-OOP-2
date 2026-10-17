@@ -12,6 +12,7 @@ VERDE = "\033[32m"
 AMARELO = "\033[33m"
 AZUL = "\033[34m"
 NEGRITO = "\033[1m"
+ROXO = "\033[35m"
 RESET = "\033[0m"
 
 separador = "-" * 60
@@ -27,7 +28,7 @@ def normalizar_texto(texto):
     return sem_acento
 
 def mostrar_ativos(self):
-    print("Ativos disponíveis:\n")
+    print(f"{ROXO}Ativos disponíveis:{RESET}\n")
     for ativo in self.repo.equipamentos_by_nome.values():
         print(f"{AZUL}{ativo.id_equip}{RESET}.{ativo.nome.capitalize()}")
 
@@ -44,7 +45,7 @@ class CLI:
         print(f"{VERDE}{banner}{RESET}")
         while True:
             print(f"\n{separador}")
-            print("   SISTEMA DE INVENTÁRIO E ANÁLISE DE RISCO")
+            print(f"   {AZUL}SISTEMA DE INVENTÁRIO E ANÁLISE DE RISCO{RESET}")
             print(f"{separador}")
             print(F"1. {VERDE}Cadastrar{RESET} Novo Ativo")
             print(f"2. {AZUL}Buscar/Consultar{RESET} Ativo")
@@ -53,11 +54,12 @@ class CLI:
             print(f"5. {VERDE}Cadastrar{RESET} Vulnerabilidade em Ativo")
             print(f"6. {AZUL}Visualizar{RESET} Vulnerabilidades de um Ativo")
             print(f"7. {AMARELO}Gerenciar{RESET} Dependências entre Ativos")
-            print(f"8. {AMARELO}Calcular{RESET} e Consultar Riscos (Álgebra Linear)")
+            print(f"8. {AMARELO}Calcular{RESET} e Consultar Riscos")
+            print(f"9. {AZUL}Visualizar{RESET} Ativos Cadastrados")
             print(F"0. {VERMELHO}Sair{RESET}")
             print(f"{separador}")
 
-            opcao = normalizar_texto(input("Escolha uma opção: "))
+            opcao = normalizar_texto(input(f"{AZUL}Escolha uma opção:{RESET} "))
 
             if opcao in ["1", "cadastrar", "cadastrarativo", "novoativo"]:
                 self._cadastrar_ativo()
@@ -75,13 +77,16 @@ class CLI:
                 self._gerenciar_dependencias()
             elif opcao in ["8", "calcularriscos", "riscos", "analisederisco", "calcularrisco"]:
                 self._calcular_riscos()
+            elif opcao in ["9", "visualizarativos", "verativos", "listarativos"]:
+                mostrar_ativos(self)
+                time.sleep(2)
             elif opcao in ["0", "sair", "encerrar", "exit", "fechar"]:
                 print(f"\n{VERMELHO}ENCERRANDO A APLICAÇÃO!{RESET}")
                 time.sleep(2)
                 sys.exit(0)
 
             else:
-                print(f"\n\n{VERMELHO}[Erro]{RESET} Opção {VERMELHO}inválida{RESET}. Tente novamente.")
+                print(f"\n\n{VERMELHO}[Erro]{RESET} Opção inválida. Tente novamente.")
 
     # --- Métodos Auxiliares de Validação ---
 
@@ -92,7 +97,7 @@ class CLI:
                 valor = int(input(mensagem).strip())
                 return valor
             except ValueError:
-                print("[Erro] Entrada inválida. Por favor, digite um número inteiro.")
+                print(f"{VERMELHO}[Erro]{RESET} Entrada inválida. Por favor, digite um número inteiro.")
 
     def _ler_float(self, mensagem: str) -> float:
         """Lê um número flutuante com tratamento de exceção."""
@@ -101,7 +106,7 @@ class CLI:
                 valor = float(input(mensagem).strip())
                 return valor
             except ValueError:
-                print("[Erro] Entrada inválida. Por favor, digite um número decimal.")
+                print(f"{VERMELHO}[Erro]{RESET} Entrada inválida. Por favor, digite um número decimal.")
 
     def _ler_texto_nao_vazio(self, mensagem: str) -> str:
         """Lê uma string garantindo que não seja vazia."""
@@ -109,13 +114,13 @@ class CLI:
             texto = input(mensagem).strip()
             if texto:
                 return texto
-            print("[Erro] O campo não pode ficar vazio.")
+            print(f"{VERMELHO}[Erro]{RESET} O campo não pode ficar vazio.")
 
     # --- Funcionalidades do Menu ---
 
     def _cadastrar_ativo(self):
         print(f"\n--- {VERDE}Cadastrar{RESET} Novo Ativo ---")
-        print("\nID do ativo sendo gerado automaticamente!")
+        print(f"\n{AMARELO}ID do ativo sendo gerado automaticamente!{RESET}")
         id_equip = gerador_id_random(self.repo.equipamentos_by_id.keys())
         print(f"{AZUL}ID gerado:{RESET} {VERDE}{id_equip}{RESET}")
 
@@ -127,15 +132,15 @@ class CLI:
         responsavel = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Responsável:{RESET} "))
         setor = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Setor/Localização:{RESET} "))
 
-        print("\nTipos de Ativos disponíveis:")
+        print(f"\n{AZUL}Tipos de Ativos disponíveis:{RESET}")
         for tipo in TipoEquipamento:
             print(f"{AZUL}{tipo.value}{RESET} - {tipo.name}")
 
-        cod_tipo = self._ler_int("Código do Tipo de Ativo: ")
+        cod_tipo = self._ler_int(f"{AZUL}Código do Tipo de Ativo:{RESET} ")
         try:
             tipo_enum = TipoEquipamento(cod_tipo)
         except ValueError:
-            print("[Erro] Código de tipo inválido.")
+            print(f"{VERMELHO}[Erro]{RESET} Código de tipo inválido.")
             return
 
         # Instanciação com herança/polimorfismo
@@ -147,15 +152,15 @@ class CLI:
             novo_ativo = Equipamento(id_equip, hostname, responsavel, setor, tipo_enum)
 
         self.repo.adicionar(novo_ativo)
-        print(f"\n{VERDE}[Sucesso]{RESET} Ativo '{AZUL}{hostname}{RESET}' cadastrado com {VERDE}sucesso!{VERDE}")
+        print(f"\n{VERDE}[Sucesso]{RESET} Ativo '{AZUL}{hostname}{RESET}' cadastrado com sucesso!")
 
     def _buscar_ativo(self):
 
         mostrar_ativos(self)
 
         while True:
-            print("\n--- Buscar Ativo ---")
-            termo = normalizar_texto(self._ler_texto_nao_vazio("Digite o ID ou nome do ativo: "))
+            print(f"\n--- {AZUL}Buscar Ativo{RESET} ---")
+            termo = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Digite o ID ou nome do ativo:{RESET} "))
             if termo == "quit":
                 break
 
@@ -180,134 +185,156 @@ class CLI:
             print(f"\n{VERMELHO}[Aviso] Nenhum ativo encontrado com esse identificador.{RESET}")
 
             # Pergunta ao usuário se ele deseja tentar novamente
-            opcao = input("\nDeseja tentar novamente? (S/N): ").strip().lower()
+            opcao = input(f"\n{AZUL}Deseja tentar novamente? (S/N):{RESET} ").strip().lower()
             if opcao not in ["s", "sim", "1"]:
-                print("Retornando ao menu principal...")
+                print(f"{AMARELO}Retornando ao menu principal...{RESET}")
                 time.sleep(1)
                 break  # Sai do loop e volta ao menu principal
 
     def _atualizar_ativo(self):
-        print("\n--- Atualizar Ativo ---")
-        id_equip = self._ler_int("ID do ativo a atualizar: ")
+
+        mostrar_ativos(self)
+        print(f"\n--- {AMARELO}Atualizar Ativo{RESET} ---")
+        id_equip = self._ler_int(f"{AZUL}ID do ativo a atualizar:{RESET} ")
         ativo = self.repo.buscar_por_id(id_equip)
 
         if not ativo:
-            print("[Erro] Ativo não encontrado.")
+            print(f"{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
             return
 
-        print(f"Atualizando o ativo '{ativo.nome}'. Deixe em branco para manter o valor atual.")
+        print(f"{AMARELO}Atualizando o ativo '{ativo.nome}'. Deixe em branco para manter o valor atual.{RESET}")
 
-        novo_resp = input(f"Novo Responsável [{ativo.responsavel}]: ").strip()
+        novo_resp = input(f"{AZUL}Novo Responsável [{ativo.responsavel}]:{RESET} ").strip()
         if novo_resp:
             ativo.responsavel = novo_resp
 
-        novo_setor = input(f"Novo Setor [{ativo.setor}]: ").strip()
+        novo_setor = input(f"{AZUL}Novo Setor [{ativo.setor}]:{RESET} ").strip()
         if novo_setor:
             ativo.setor = novo_setor
 
         self.repo.salvar()
-        print("\n[Sucesso] Dados do ativo atualizados com sucesso!")
+        print(f"\n{VERDE}[Sucesso]{RESET} Dados do ativo atualizados com sucesso!")
 
     def _remover_ativo(self):
 
         mostrar_ativos(self)
 
-        print("\n--- Remover Ativo ---")
-        id_equip = self._ler_int("ID do ativo a remover: ")
-
-        if self.repo.deletar(id_equip):
-            print("\n[Sucesso] Ativo e suas vulnerabilidades foram removidos da base.")
-        else:
-            print("\n[Erro] Ativo não encontrado.")
-
-    def _cadastrar_vulnerabilidade(self):
-        print("\n--- Cadastrar Vulnerabilidade ---")
-        id_equip = self._ler_int("ID do ativo afetado: ")
+        print(f"\n--- {VERMELHO}Remover Ativo{RESET} ---")
+        id_equip = self._ler_int(f"ID do ativo a {VERMELHO}remover:{RESET} ")
         ativo = self.repo.buscar_por_id(id_equip)
 
         if not ativo:
-            print("[Erro] Ativo não encontrado.")
+            print(f"\n{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
             return
 
-        id_vuln = self._ler_texto_nao_vazio("ID da Vulnerabilidade (ex: CVE-2021-44228 ou V1): ")
-        descricao = self._ler_texto_nao_vazio("Descrição da falha: ")
-        categoria = self._ler_texto_nao_vazio("Categoria (ex: CWE-89, Configuração): ")
-        severidade = self._ler_float("Nota de Severidade CVSS (0.0 a 10.0): ")
-        status = self._ler_texto_nao_vazio("Status (Aberta, Em tratamento, Corrigida, Risco aceito): ")
+        while True:
+            certeza = input(f"Tem certeza de que deseja {VERMELHO}remover{RESET} o ativo {AZUL}'{id_equip}.{ativo.nome.capitalize()}'{RESET}? Essa operação {VERMELHO}não{RESET} pode ser desfeita: Y/N\n-> ")
+            certeza = normalizar_texto(certeza)
+            if certeza in ["sim", "s", "yes", "y"]:
+                if self.repo.deletar(id_equip):
+                    print(f"\n{VERDE}[Sucesso]{RESET} Ativo e suas vulnerabilidades foram {VERMELHO}removidos{RESET} da base.")
+                    time.sleep(1.5)
+                else:
+                    print(f"\n{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
+                break
+            elif certeza in ["nao", "n", "no", "nope"]:
+                print(f"Operação {VERMELHO}cancelada!{RESET}")
+                time.sleep(1.5)
+                break
+            else:
+                print("Escolha uma opção válida!")
+
+    def _cadastrar_vulnerabilidade(self):
+        print(f"\n--- {VERDE}Cadastrar Vulnerabilidade{RESET} ---")
+        mostrar_ativos(self)
+        id_equip = self._ler_int(f"{AZUL}ID do ativo afetado:{RESET} ")
+        ativo = self.repo.buscar_por_id(id_equip)
+
+        if not ativo:
+            print(f"{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
+            return
+
+        id_vuln = self._ler_texto_nao_vazio(f"{AZUL}ID da Vulnerabilidade (ex: CVE-2021-44228 ou V1):{RESET} ")
+        descricao = self._ler_texto_nao_vazio(f"{AZUL}Descrição da falha:{RESET} ")
+        categoria = self._ler_texto_nao_vazio(f"{AZUL}Categoria (ex: CWE-89, Configuração):{RESET} ")
+        severidade = self._ler_float(f"{AZUL}Nota de Severidade CVSS (0.0 a 10.0):{RESET} ")
+        status = self._ler_texto_nao_vazio(f"{AZUL}Status (Aberta, Em tratamento, Corrigida, Risco aceito):{RESET} ")
 
         vuln = Vulnerabilidade(id_vuln, descricao, categoria, severidade, status)
         ativo.vulnerabilidades.append(vuln)
         self.repo.salvar()
-        print("\n[Sucesso] Vulnerabilidade associada ao ativo com sucesso!")
+        print(f"\n{VERDE}[Sucesso]{RESET} Vulnerabilidade associada ao ativo com sucesso!")
 
     def _visualizar_vulnerabilidades(self):
-        print("\n--- Visualizar Vulnerabilidades ---")
-        id_equip = self._ler_int("ID do ativo: ")
+        print(f"\n--- {AZUL}Visualizar Vulnerabilidades{RESET} ---")
+        mostrar_ativos(self)
+        id_equip = self._ler_int(f"{AZUL}ID do ativo:{RESET} ")
         ativo = self.repo.buscar_por_id(id_equip)
 
         if not ativo:
-            print("[Erro] Ativo não encontrado.")
+            print(f"{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
             return
 
         if not ativo.vulnerabilidades:
-            print(f"\n[Informação] O ativo '{ativo.nome}' não possui vulnerabilidades registradas.")
+            print(f"\n{AMARELO}[Informação]{RESET} O ativo '{ativo.nome}' não possui vulnerabilidades registradas.")
             return
 
-        print(f"\n--- Vulnerabilidades do Ativo: {ativo.nome} ---")
+        print(f"\n--- {AZUL}Vulnerabilidades do Ativo: {ativo.nome}{RESET} ---")
         for v in ativo.vulnerabilidades:
-            print(f"- [{v.id_vuln}] CVSS: {v.severidade_cvss} | Status: {v.status}")
-            print(f"  Descrição: {v.descricao} | Categoria: {v.categoria}")
+            print(f"- {AZUL}[{v.id_vuln}]{RESET} CVSS: {AMARELO}{v.severidade_cvss}{RESET} | Status: {AMARELO}{v.status}{RESET}")
+            print(f"  {AZUL}Descrição:{RESET} {v.descricao} | {AZUL}Categoria:{RESET} {v.categoria}")
 
     def _gerenciar_dependencias(self):
-        print("\n--- Gerenciar Dependências (Pesos para Matriz A) ---")
-        print("1. Adicionar/Atualizar Dependência")
-        print("2. Listar Dependências Atuais")
-        op = input("Escolha uma opção: ").strip()
+        print(f"\n--- {AMARELO}Gerenciar Dependências (Pesos para Matriz A){RESET} ---")
+        print(f"1. {VERDE}Adicionar/Atualizar{RESET} Dependência")
+        print(f"2. {AZUL}Listar{RESET} Dependências Atuais")
+        op = input(f"{AZUL}Escolha uma opção:{RESET} ").strip()
 
         if op == "1":
-            id_origem = self._ler_int("ID do Ativo de ORIGEM (de onde o risco vem): ")
-            id_destino = self._ler_int("ID do Ativo de DESTINO (que herda o risco): ")
+            mostrar_ativos(self)
+            id_origem = self._ler_int(f"{AZUL}ID do Ativo de ORIGEM (de onde o risco vem):{RESET} ")
+            id_destino = self._ler_int(f"{AZUL}ID do Ativo de DESTINO (que herda o risco):{RESET} ")
 
             if id_origem == id_destino:
-                print("[Erro] Um ativo não pode depender dele mesmo (diagonal A_ii = 0).")
+                print(f"{VERMELHO}[Erro]{RESET} Um ativo não pode depender dele mesmo (diagonal A_ii = 0).")
                 return
 
-            peso = self._ler_float("Peso da dependência (fração entre 0.0 e 0.99): ")
+            peso = self._ler_float(f"{AZUL}Peso da dependência (fração entre 0.0 e 0.99):{RESET} ")
             if not (0.0 <= peso < 1.0):
-                print("[Erro] O peso deve estar no intervalo [0, 1).")
+                print(f"{VERMELHO}[Erro]{RESET} O peso deve estar no intervalo [0, 1).")
                 return
 
             chave = f"{id_origem}->{id_destino}"
             self.repo.dependencias[chave] = peso
             self.repo.salvar()
-            print(f"\n[Sucesso] Dependência '{chave}' configurada com peso {peso}.")
+            print(f"\n{VERDE}[Sucesso]{RESET} Dependência '{chave}' configurada com peso {peso}.")
 
         elif op == "2":
-            print("\n--- Dependências Registradas ---")
+            print(f"\n--- {AZUL}Dependências Registradas{RESET} ---")
             if not self.repo.dependencias:
-                print("Nenhuma dependência cadastrada.")
+                print(f"{AMARELO}Nenhuma dependência cadastrada.{RESET}")
             for chave, peso in self.repo.dependencias.items():
-                print(f"  {chave} => Peso: {peso}")
+                print(f"  {AZUL}{chave}{RESET} => Peso: {AMARELO}{peso}{RESET}")
 
     def _calcular_riscos(self):
-        print("\n--- Análise de Risco por Álgebra Linear ---")
+        print(f"\n--- {AMARELO}Análise de Risco por Álgebra Linear{RESET} ---")
         try:
             risco_proprio, risco_efetivo = self.analisador.calcular_riscos()
 
             if not risco_proprio:
-                print("[Aviso] Nenhum ativo cadastrado para realizar a análise.")
+                print(f"{AMARELO}[Aviso]{RESET} Nenhum ativo cadastrado para realizar a análise.")
                 return
 
-            print("\n" + f"{'HOSTNAME':<20} | {'RISCO PRÓPRIO (b)':<18} | {'RISCO EFETIVO (x)':<18}")
+            print(f"\n{AZUL}{'HOSTNAME':<20} | {'RISCO PRÓPRIO (b)':<18} | {'RISCO EFETIVO (x)':<18}{RESET}")
             print("-" * 62)
             for hostname in risco_proprio:
                 b_val = risco_proprio[hostname]
                 x_val = risco_efetivo[hostname]
-                print(f"{hostname:<20} | {b_val:<18.2f} | {x_val:<18.2f}")
+                print(f"{hostname:<20} | {VERDE}{b_val:<18.2f}{RESET} | {AMARELO}{x_val:<18.2f}{RESET}")
 
         except ValueError as e:
-            print(f"\n[ERRO MATEMÁTICO] Não foi possível resolver o sistema:")
-            print(f"  {e}")
+            print(f"\n{VERMELHO}[ERRO MATEMÁTICO]{RESET} Não foi possível resolver o sistema:")
+            print(f"  {VERMELHO}{e}{RESET}")
 
 
 if __name__ == "__main__":
