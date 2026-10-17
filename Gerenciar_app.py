@@ -152,6 +152,8 @@ class CLI:
         while True:
             print("\n--- Buscar Ativo ---")
             termo = normalizar_texto(self._ler_texto_nao_vazio("Digite o ID ou nome do ativo: "))
+            if termo == "quit":
+                break
 
             ativo = None
             if termo.isdigit():
