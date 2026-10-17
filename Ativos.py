@@ -1,4 +1,14 @@
 from enum import Enum
+import random
+
+def gerador_id_random(ids_existentes) -> int:
+    """Gera um ID numérico aleatório garantindo que ele seja único."""
+    conjunto_ids = {int(i) for i in ids_existentes}
+
+    while True:
+        id_novo = random.randint(1, 9999)
+        if id_novo not in conjunto_ids:
+            return id_novo
 
 class TipoEquipamento(Enum):
     NOTEBOOK = 1
