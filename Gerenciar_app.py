@@ -265,6 +265,26 @@ class CLI:
         self.repo.salvar()
         print(f"\n{VERDE}[Sucesso]{RESET} Vulnerabilidade associada ao ativo com sucesso!")
 
+    def remover_vul(self):
+        print(f"\n--- {VERMELHO}Remover{RESET} vulnerabilidade ---")
+        mostrar_ativos(self)
+
+        termo = input(normalizar_texto(f"De qual ativo deseja {VERMELHO}remover{RESET} a vulnerabilidade?"))
+        ativo = None
+
+        if termo.isdigit():
+            ativo = self.repo.buscar_por_id(int(termo))
+        if not ativo:
+            ativo = self.repo.equipamentos_by_nome.get(termo)
+
+        print(f"Vulnerabilidades disponíveis: {ativo.vulnerabilidades.id_vuln}")
+        escolha = input(normalizar_texto(f"Qual vulnerabilidade deseja remover? "))
+        if escolha in ativo.vulnerabilidades.id_vuln:
+            certeza = input(normalizar_texto(f"Tem certeza de que deseja {VERMELHO}remover{RESET} a vulnerabilidade '{AZUL}{escolha}{RESET}'? "
+                  f"essa operação {VERMELHO}NÃO{RESET} pode ser revertida Y/N: "))
+            if certeza not in {"n","nao","no"}:
+                pass
+
     def _visualizar_vulnerabilidades(self):
         print(f"\n--- {AZUL}Visualizar Vulnerabilidades{RESET} ---")
         mostrar_ativos(self)
@@ -326,7 +346,7 @@ class CLI:
                 return
 
             print(f"\n{AZUL}{'HOSTNAME':<20} | {'RISCO PRÓPRIO (b)':<18} | {'RISCO EFETIVO (x)':<18}{RESET}")
-            print("-" * 62)
+            print(separador)
             for hostname in risco_proprio:
                 b_val = risco_proprio[hostname]
                 x_val = risco_efetivo[hostname]

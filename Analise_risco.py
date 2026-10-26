@@ -60,9 +60,9 @@ class AnalisadorDeRisco:
             posicao_do_equip[eq.id_equip] = proxima_posicao
             proxima_posicao += 1
 
-        for chave, peso in self.repo.dependencias.items():
-            id_origem, id_destino = map(int, chave.split("->"))
-            if id_origem in posicao_do_equip and id_destino in posicao_do_equip:
+        for chave, peso in self.repo.dependencias.items(): #monta a matriz de pesos para interdependência
+            id_origem, id_destino = map(int, chave.split("->")) #-> divide um valor do outro, split vai procurar isso
+            if id_origem in posicao_do_equip and id_destino in posicao_do_equip: #verifica se pegou os ids corretamente e na ordem correta
                 linha = posicao_do_equip[id_destino]  # Ativo que herda risco
                 coluna = posicao_do_equip[id_origem]  # Ativo de onde o risco vem
                 if linha != coluna:

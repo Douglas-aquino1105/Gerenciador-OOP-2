@@ -39,5 +39,22 @@
         "setor": "ti",
         "tipo": 1,
         "vulnerabilidades": []
+    },
+    {
+        "id_equip": 7053,
+        "nome": "basededadossql",
+        "responsavel": "juca",
+        "setor": "ti",
+        "tipo": 2,
+        "vulnerabilidades": [
+            {
+                "id_vuln": "sql injection",
+                "descricao": "atacante tem acesso a base de dados e em alguns casos pode comprometer a confidentiality...",
+                "categoria": "configuração",
+                "severidade_cvss": 9.0,
+                "status": "aberta",
+                "nome": ""
+            }
+        ]
     }
 ]
