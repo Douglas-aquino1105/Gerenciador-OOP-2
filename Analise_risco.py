@@ -20,20 +20,29 @@ class AnalisadorDeRisco:
                     vulns_unicas[v.id_vuln] = v.severidade_cvss
 
         m = len(vulns_unicas)
-        id_vuln_to_idx = {id_v: idx for idx, id_v in enumerate(vulns_unicas.keys())} #PERCORRE AS VUL UNICAS E ATRIBUI UMA INT PARA CADA USANDO ENUMERATE
-        #id_v = nome da vul | idx = int associado
+
+        # Cada vulnerabilidade única recebe um número de coluna (0, 1, 2, ...)
+        # Ex.: {"CVE-A": 0, "CVE-B": 1, "CVE-C": 2}
+        coluna_da_vuln = {}
+        proxima_coluna = 0
+        for id_vuln in vulns_unicas:
+            coluna_da_vuln[id_vuln] = proxima_coluna
+            proxima_coluna += 1
 
         # 2. Construção da Matriz de Incidência M (n x m) e Vetor de Severidade v (m)
         M = np.zeros((n, m))
         v = np.zeros(m)
 
-        for id_v, idx in id_vuln_to_idx.items():
-            v[idx] = vulns_unicas[id_v] #ATRIBUI A INT PARA IDX
+        # v[coluna] = severidade CVSS da vulnerabilidade daquela coluna
+        for id_vuln, severidade in vulns_unicas.items():
+            coluna = coluna_da_vuln[id_vuln]
+            v[coluna] = severidade
 
-        for i, eq in enumerate(equipamentos):
+        # M[linha, coluna] = 1 se o equipamento (linha) tem a vulnerabilidade (coluna)
+        for linha, eq in enumerate(equipamentos):
             for vuln in eq.vulnerabilidades:
-                j = id_vuln_to_idx[vuln.id_vuln]
-                M[i, j] = 1.0 #i = EQUIPAMENTO | J = VULNERABILIDADE
+                coluna = coluna_da_vuln[vuln.id_vuln]
+                M[linha, coluna] = 1.0
 
         # 3. Risco Próprio b = F * M * v (incorporando o polimorfismo do fator de exposição)
         F = np.diag([eq.fator_exposicao() for eq in equipamentos]) #DIAG CRIA MATRIZ DIAGONAL
@@ -41,15 +50,23 @@ class AnalisadorDeRisco:
 
         # 4. Matriz de Dependência A (n x n)
         A = np.zeros((n, n))
-        id_eq_to_idx = {eq.id_equip: idx for idx, eq in enumerate(equipamentos)} #ATRIBUI UMA INT A CADA EQUIP
+
+        # Cada equipamento recebe um número de posição (0, 1, 2, ...)
+        # que serve tanto de linha quanto de coluna em A
+        # Ex.: {101: 0, 102: 1, 103: 2}
+        posicao_do_equip = {}
+        proxima_posicao = 0
+        for eq in equipamentos:
+            posicao_do_equip[eq.id_equip] = proxima_posicao
+            proxima_posicao += 1
 
         for chave, peso in self.repo.dependencias.items():
             id_origem, id_destino = map(int, chave.split("->"))
-            if id_origem in id_eq_to_idx and id_destino in id_eq_to_idx:
-                i = id_eq_to_idx[id_destino]  # Ativo que herda risco
-                j = id_eq_to_idx[id_origem]  # Ativo de onde o risco vem
-                if i != j:
-                    A[i, j] = peso
+            if id_origem in posicao_do_equip and id_destino in posicao_do_equip:
+                linha = posicao_do_equip[id_destino]  # Ativo que herda risco
+                coluna = posicao_do_equip[id_origem]  # Ativo de onde o risco vem
+                if linha != coluna:
+                    A[linha, coluna] = peso
 
         # 5. Verificação de Invertibilidade da Matriz (I - A)
         I = np.eye(n)
@@ -73,7 +90,7 @@ class AnalisadorDeRisco:
         x = np.linalg.solve(matriz_sistema, b)
 
         # Retorna resultados mapeados por hostname/ID
-        risco_proprio = {eq.hostname: float(b[i]) for i, eq in enumerate(equipamentos)}
-        risco_efetivo = {eq.hostname: float(x[i]) for i, eq in enumerate(equipamentos)}
+        risco_proprio = {eq.nome: float(b[i]) for i, eq in enumerate(equipamentos)}
+        risco_efetivo = {eq.nome: float(x[i]) for i, eq in enumerate(equipamentos)}
 
         return risco_proprio, risco_efetivo

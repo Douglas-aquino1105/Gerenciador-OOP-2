@@ -13,7 +13,16 @@
         "responsavel": "jorge",
         "setor": "adm",
         "tipo": 1,
-        "vulnerabilidades": []
+        "vulnerabilidades": [
+            {
+                "id_vuln": "path traversal",
+                "descricao": "o atacante pode acessar arquivos que normalmente não estariam disponíveis",
+                "categoria": "configuração",
+                "severidade_cvss": 8.0,
+                "status": "aberta",
+                "nome": ""
+            }
+        ]
     },
     {
         "id_equip": 1015,
