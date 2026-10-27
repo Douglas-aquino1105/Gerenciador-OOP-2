@@ -1,41 +1,9 @@
 [
     {
-        "id_equip": 7522,
-        "nome": "servidorlinux",
-        "responsavel": "jorge",
-        "setor": "ti",
-        "tipo": 1,
-        "vulnerabilidades": []
-    },
-    {
-        "id_equip": 3729,
-        "nome": "servidorlinuxes",
-        "responsavel": "jorge",
-        "setor": "adm",
-        "tipo": 1,
-        "vulnerabilidades": []
-    },
-    {
-        "id_equip": 1015,
-        "nome": "sevidorlinuxes",
-        "responsavel": "juca",
-        "setor": "ti",
-        "tipo": 1,
-        "vulnerabilidades": []
-    },
-    {
-        "id_equip": 5809,
-        "nome": "servidorwindows",
-        "responsavel": "lucas",
-        "setor": "ti",
-        "tipo": 1,
-        "vulnerabilidades": []
-    },
-    {
         "id_equip": 7053,
         "nome": "basededadossql",
-        "responsavel": "juca",
-        "setor": "ti",
+        "responsavel": "Ana Souza",
+        "setor": "TI",
         "tipo": 2,
         "vulnerabilidades": [
             {
@@ -53,6 +21,14 @@
         "responsavel": "juca",
         "setor": "ti",
         "tipo": 1,
+        "vulnerabilidades": []
+    },
+    {
+        "id_equip": 3895,
+        "nome": "app21123",
+        "responsavel": "juca",
+        "setor": "adm",
+        "tipo": 3,
         "vulnerabilidades": []
     }
 ]

@@ -3,7 +3,7 @@ import unicodedata
 import time
 import pyfiglet
 
-from Ativos import Equipamento, ServidorWeb, BancoDados, Aplicativo, Vulnerabilidade, TipoEquipamento, gerador_id_random
+from Ativos import Equipamento, ServidorWeb, BancoDados, Aplicativo, Vulnerabilidade, TipoEquipamento, gerador_id_random, Setor, RESPONSAVEIS
 from Arquivos import InventarioRepository
 from Analise_risco import AnalisadorDeRisco
 
@@ -33,6 +33,25 @@ def mostrar_ativos(self):
         print(f"{AZUL}{ativo.id_equip}{RESET}.{ativo.nome.capitalize()}")
 
 class CLI:
+    def _escolher_opcao(self, titulo: str, opcoes: list, atual: str = None) -> str:
+        """Mostra opções numeradas. Se 'atual' for dado, Enter mantém o valor atual."""
+        print(f"\n{AZUL}{titulo}{RESET}")
+        for i, opcao in enumerate(opcoes, start=1):
+            print(f"{AZUL}{i}{RESET} - {opcao}")
+
+        dica = f" [Enter mantém: {atual}]" if atual else ""
+
+        while True:
+            entrada = input(f"{AZUL}Escolha uma opção{dica}:{RESET} ").strip()
+
+            if not entrada and atual is not None:
+                return atual
+
+            if entrada.isdigit() and 1 <= int(entrada) <= len(opcoes):
+                return opcoes[int(entrada) - 1]
+
+            print(f"{VERMELHO}[Erro]{RESET} Opção inválida.")
+
     def __init__(self):
         # Inicializa o repositório e o analisador de risco
         self.repo = InventarioRepository()
@@ -137,8 +156,8 @@ class CLI:
                 print(f"{VERMELHO}[Erro]{RESET} Já existe um ativo com o nome '{hostname}'. Escolha outro.")
             else:
                 break
-        responsavel = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Responsável:{RESET} "))
-        setor = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Setor/Localização:{RESET} "))
+        responsavel = self._escolher_opcao("Responsáveis disponíveis:", RESPONSAVEIS)
+        setor = self._escolher_opcao("Setores disponíveis:", [s.value for s in Setor])
 
         print(f"\n{AZUL}Tipos de Ativos disponíveis:{RESET}")
         for tipo in TipoEquipamento:
@@ -214,13 +233,11 @@ class CLI:
 
         print(f"{AMARELO}Atualizando o ativo '{ativo.nome}'. Deixe em branco para manter o valor atual.{RESET}")
 
-        novo_resp = input(f"{AZUL}Novo Responsável [{ativo.responsavel}]:{RESET} ").strip()
-        if novo_resp:
-            ativo.responsavel = novo_resp
+        ativo.responsavel = self._escolher_opcao(
+            "Responsáveis disponíveis:", RESPONSAVEIS, atual=ativo.responsavel)
 
-        novo_setor = input(f"{AZUL}Novo Setor [{ativo.setor}]:{RESET} ").strip()
-        if novo_setor:
-            ativo.setor = novo_setor
+        ativo.setor = self._escolher_opcao(
+            "Setores disponíveis:", [s.value for s in Setor], atual=ativo.setor)
 
         self.repo.salvar()
         print(f"\n{VERDE}[Sucesso]{RESET} Dados do ativo atualizados com sucesso!")

@@ -10,6 +10,14 @@ def gerador_id_random(ids_existentes) -> int:
         if id_novo not in conjunto_ids:
             return id_novo
 
+class Setor(Enum):
+    TI = "TI"
+    FINANCEIRO = "Financeiro"
+    RH = "RH"
+    OPERACOES = "Comercial"
+
+RESPONSAVEIS = ["Ana Souza", "Bruno Lima", "Carla Dias", "João da Silva"]
+
 class TipoEquipamento(Enum):
     #NOTEBOOK = 1
     SERVIDOR = 1
