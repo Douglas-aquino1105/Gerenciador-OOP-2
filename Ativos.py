@@ -24,7 +24,6 @@ class Vulnerabilidade:
         self.categoria = categoria
         self.severidade_cvss = float(severidade_cvss)
         self.status = status  # Ex: Aberta, Em tratamento, Corrigida, Risco aceito
-        self.nome = nome
 
     def to_dict(self):
         return self.__dict__

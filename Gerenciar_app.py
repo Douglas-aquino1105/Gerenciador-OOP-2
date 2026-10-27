@@ -56,6 +56,7 @@ class CLI:
             print(f"7. {AMARELO}Gerenciar{RESET} Dependências entre Ativos")
             print(f"8. {AMARELO}Calcular{RESET} e Consultar Riscos")
             print(f"9. {AZUL}Visualizar{RESET} Ativos Cadastrados")
+            print(f"10. {VERMELHO}Remover{RESET} Vulnerabilidade de um Ativo")
             print(F"0. {VERMELHO}Sair{RESET}")
             print(f"{separador}")
 
@@ -80,6 +81,8 @@ class CLI:
             elif opcao in ["9", "visualizarativos", "verativos", "listarativos"]:
                 mostrar_ativos(self)
                 time.sleep(2)
+            elif opcao in ["10", "removervulnerabilidade", "excluirvulnerabilidade"]:
+                self._remover_vulnerabilidade()
             elif opcao in ["0", "sair", "encerrar", "exit", "fechar"]:
                 print(f"\n{VERMELHO}ENCERRANDO A APLICAÇÃO!{RESET}")
                 time.sleep(2)
@@ -128,7 +131,12 @@ class CLI:
         #     print(f"[Erro] Já existe um ativo cadastrado com o ID {id_equip}.")
         #     return
 
-        hostname = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Nome:{RESET} "))
+        while True:
+            hostname = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Nome:{RESET} "))
+            if hostname in self.repo.equipamentos_by_nome:
+                print(f"{VERMELHO}[Erro]{RESET} Já existe um ativo com o nome '{hostname}'. Escolha outro.")
+            else:
+                break
         responsavel = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Responsável:{RESET} "))
         setor = normalizar_texto(self._ler_texto_nao_vazio(f"{AZUL}Setor/Localização:{RESET} "))
 
@@ -148,6 +156,8 @@ class CLI:
             novo_ativo = ServidorWeb(id_equip, hostname, responsavel, setor, tipo_enum)
         elif tipo_enum == TipoEquipamento.BANCO_DADOS:
             novo_ativo = BancoDados(id_equip, hostname, responsavel, setor, tipo_enum)
+        elif tipo_enum == TipoEquipamento.SERVIDOR:
+            novo_ativo = Aplicativo(id_equip, hostname, responsavel, setor, tipo_enum)
         else:
             novo_ativo = Equipamento(id_equip, hostname, responsavel, setor, tipo_enum)
 
@@ -254,7 +264,7 @@ class CLI:
             print(f"{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
             return
 
-        id_vuln = self._ler_texto_nao_vazio(f"{AZUL}ID da Vulnerabilidade (ex: CVE-2021-44228 ou V1):{RESET} ")
+        id_vuln = self._ler_texto_nao_vazio(f"{AZUL}Nome da vulnerabilidade (ex: CVE-2021-44228 ou V1):{RESET} ")
         descricao = self._ler_texto_nao_vazio(f"{AZUL}Descrição da falha:{RESET} ")
         categoria = self._ler_texto_nao_vazio(f"{AZUL}Categoria (ex: CWE-89, Configuração):{RESET} ")
         severidade = self._ler_float(f"{AZUL}Nota de Severidade CVSS (0.0 a 10.0):{RESET} ")
@@ -265,25 +275,61 @@ class CLI:
         self.repo.salvar()
         print(f"\n{VERDE}[Sucesso]{RESET} Vulnerabilidade associada ao ativo com sucesso!")
 
-    def remover_vul(self):
-        print(f"\n--- {VERMELHO}Remover{RESET} vulnerabilidade ---")
+    def _remover_vulnerabilidade(self):
+        print(f"\n--- {VERMELHO}Remover{RESET} Vulnerabilidade ---")
         mostrar_ativos(self)
 
-        termo = input(normalizar_texto(f"De qual ativo deseja {VERMELHO}remover{RESET} a vulnerabilidade?"))
+        termo = normalizar_texto(input(f"\n{AZUL}ID ou nome do ativo:{RESET} "))
         ativo = None
-
         if termo.isdigit():
             ativo = self.repo.buscar_por_id(int(termo))
         if not ativo:
             ativo = self.repo.equipamentos_by_nome.get(termo)
 
-        print(f"Vulnerabilidades disponíveis: {ativo.vulnerabilidades.id_vuln}")
-        escolha = input(normalizar_texto(f"Qual vulnerabilidade deseja remover? "))
-        if escolha in ativo.vulnerabilidades.id_vuln:
-            certeza = input(normalizar_texto(f"Tem certeza de que deseja {VERMELHO}remover{RESET} a vulnerabilidade '{AZUL}{escolha}{RESET}'? "
-                  f"essa operação {VERMELHO}NÃO{RESET} pode ser revertida Y/N: "))
-            if certeza not in {"n","nao","no"}:
-                pass
+        if not ativo:
+            print(f"{VERMELHO}[Erro]{RESET} Ativo não encontrado.")
+            return
+
+        if not ativo.vulnerabilidades:
+            print(f"\n{AMARELO}[Informação]{RESET} O ativo '{ativo.nome}' não possui vulnerabilidades.")
+            return
+
+        print(f"\n{AZUL}Vulnerabilidades de {ativo.nome}:{RESET}")
+        for v in ativo.vulnerabilidades:
+            print(
+                f"- {AZUL}[{v.id_vuln}]{RESET} CVSS: {AMARELO}{v.severidade_cvss}{RESET} | Status: {AMARELO}{v.status}{RESET}")
+
+        escolha = normalizar_texto(input(f"\n{AZUL}Nome da vulnerabilidade a remover:{RESET} "))
+
+        # Compara os dois lados normalizados (ignora maiúsculas/minúsculas e espaços)
+        vuln = None
+        for v in ativo.vulnerabilidades:
+            if normalizar_texto(v.id_vuln) == escolha:
+                vuln = v
+                break
+
+        if not vuln:
+            print(f"{VERMELHO}[Erro]{RESET} Vulnerabilidade não encontrada neste ativo.")
+            return
+
+        while True:
+            certeza = normalizar_texto(input(
+                f"Tem certeza de que deseja {VERMELHO}remover{RESET} a vulnerabilidade "
+                f"{AZUL}'{vuln.id_vuln}'{RESET} de '{ativo.nome}'? "
+                f"Essa operação {VERMELHO}NÃO{RESET} pode ser desfeita: Y/N\n-> "))
+
+            if certeza in ["sim", "s", "yes", "y"]:
+                ativo.vulnerabilidades.remove(vuln)
+                self.repo.salvar()  # persiste no JSON
+                print(f"\n{VERDE}[Sucesso]{RESET} Vulnerabilidade removida do ativo!")
+                time.sleep(1.5)
+                break
+            elif certeza in ["nao", "n", "no", "nope"]:
+                print(f"Operação {VERMELHO}cancelada!{RESET}")
+                time.sleep(1.5)
+                break
+            else:
+                print("Escolha uma opção válida!")
 
     def _visualizar_vulnerabilidades(self):
         print(f"\n--- {AZUL}Visualizar Vulnerabilidades{RESET} ---")
@@ -329,12 +375,33 @@ class CLI:
             self.repo.salvar()
             print(f"\n{VERDE}[Sucesso]{RESET} Dependência '{chave}' configurada com peso {peso}.")
 
+
         elif op == "2":
+
             print(f"\n--- {AZUL}Dependências Registradas{RESET} ---")
+
             if not self.repo.dependencias:
                 print(f"{AMARELO}Nenhuma dependência cadastrada.{RESET}")
+
             for chave, peso in self.repo.dependencias.items():
-                print(f"  {AZUL}{chave}{RESET} => Peso: {AMARELO}{peso}{RESET}")
+                id_origem, id_destino = map(int, chave.split("->"))
+
+                origem = self.repo.buscar_por_id(id_origem)
+
+                destino = self.repo.buscar_por_id(id_destino)
+
+                # Se o ativo foi removido, buscar_por_id devolve None
+
+                nome_origem = origem.nome.capitalize() if origem else "ativo removido"
+
+                nome_destino = destino.nome.capitalize() if destino else "ativo removido"
+
+                print(f"  {AZUL}{id_origem}{RESET}.{AMARELO}{nome_origem}{RESET} -> "
+
+                      f"{AZUL}{id_destino}{RESET}.{AMARELO}{nome_destino}{RESET} "
+
+                      f"=> Peso: {AMARELO}{peso}{RESET}")
+            time.sleep(1.5)
 
     def _calcular_riscos(self):
         print(f"\n--- {AMARELO}Análise de Risco por Álgebra Linear{RESET} ---")
@@ -345,7 +412,7 @@ class CLI:
                 print(f"{AMARELO}[Aviso]{RESET} Nenhum ativo cadastrado para realizar a análise.")
                 return
 
-            print(f"\n{AZUL}{'HOSTNAME':<20} | {'RISCO PRÓPRIO (b)':<18} | {'RISCO EFETIVO (x)':<18}{RESET}")
+            print(f"\n{AZUL}{'NOME':<20} | {'RISCO PRÓPRIO (b)':<18} | {'RISCO EFETIVO (x)':<18}{RESET}")
             print(separador)
             for hostname in risco_proprio:
                 b_val = risco_proprio[hostname]
@@ -356,6 +423,7 @@ class CLI:
             print(f"\n{VERMELHO}[ERRO MATEMÁTICO]{RESET} Não foi possível resolver o sistema:")
             print(f"  {VERMELHO}{e}{RESET}")
 
+        time.sleep(1)
 
 if __name__ == "__main__":
     app = CLI()

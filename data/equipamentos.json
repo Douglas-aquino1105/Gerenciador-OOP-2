@@ -9,24 +9,15 @@
     },
     {
         "id_equip": 3729,
-        "nome": "servidorlinux",
+        "nome": "servidorlinuxes",
         "responsavel": "jorge",
         "setor": "adm",
         "tipo": 1,
-        "vulnerabilidades": [
-            {
-                "id_vuln": "path traversal",
-                "descricao": "o atacante pode acessar arquivos que normalmente não estariam disponíveis",
-                "categoria": "configuração",
-                "severidade_cvss": 8.0,
-                "status": "aberta",
-                "nome": ""
-            }
-        ]
+        "vulnerabilidades": []
     },
     {
         "id_equip": 1015,
-        "nome": "sevidorlinux",
+        "nome": "sevidorlinuxes",
         "responsavel": "juca",
         "setor": "ti",
         "tipo": 1,
@@ -52,9 +43,16 @@
                 "descricao": "atacante tem acesso a base de dados e em alguns casos pode comprometer a confidentiality...",
                 "categoria": "configuração",
                 "severidade_cvss": 9.0,
-                "status": "aberta",
-                "nome": ""
+                "status": "aberta"
             }
         ]
+    },
+    {
+        "id_equip": 5324,
+        "nome": "servidorlinux2",
+        "responsavel": "juca",
+        "setor": "ti",
+        "tipo": 1,
+        "vulnerabilidades": []
     }
 ]

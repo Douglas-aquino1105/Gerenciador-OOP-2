@@ -68,6 +68,10 @@ class InventarioRepository:
         eq = self.equipamentos_by_id.pop(id_equip, None)
         if eq:
             self.equipamentos_by_nome.pop(eq.nome, None)
+            self.dependencias = {
+                chave: peso for chave, peso in self.dependencias.items()
+                if str(id_equip) not in chave.split("->")
+            }
             self.salvar()
             return True
         return False
